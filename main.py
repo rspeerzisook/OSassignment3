@@ -40,11 +40,15 @@ class Simulator():
         pass
 
     def generate(self):
-        for i in range(self._sample):
-            num = bin(rand.randint(0,self.mm_size))[2:]
+        self.tagGroups = 2^(self.tag) -1
 
-            self._cache[i] = int(num)
-            print(f"{self._cache[0]:09d}")
+        for i in range(self._sample):
+            num = format(int(rand.randint(0,self.mm_size)), '09b')
+            tag = int(num[0:4],2)
+            print(num)
+            print(tag)
+
+        #print(f"{self._cache[0]:09d}")
 
             
 
