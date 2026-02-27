@@ -3,6 +3,32 @@ import random as rand
 class Simulator():
     print("yeah")
     def __init__(self, mm_size = 2**32, pg_size = 2**20, cache_size = 2**23):
+
+        
+        while True:
+            try:
+                inpt = input("enter memory size. Must be power of 2 and a valid denomination (_bt, _kb, _mb, _gb)")
+                val = int(inpt[0:-2])
+                denom = inpt[-2:]
+                print(val)
+                print(denom)
+
+                if (val & (val -1)) != 0:
+                    print("must be power of 2")
+                    continue
+
+                if denom not in ('gb','mb','kb','bt'):
+                    print("use _bt, _kb, _mb, _gb")
+                    continue
+                break
+            except ValueError:
+                print("BAD")
+
+
+
+
+
+
     
         self.mm_size = int(mm_size-1)
         self._pg_size = int(pg_size-1)
@@ -63,6 +89,7 @@ class Simulator():
                 print("MISS")
                 print(f"cached tag: {self._cache[_line][0:self.tag]}")
                 print(f"   new tag: {num[0:self.tag]}")
+                self._cache
             
 
 
