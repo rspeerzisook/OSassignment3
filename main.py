@@ -45,10 +45,14 @@ class Simulator():
         for i in range(self._sample):
             num = format(int(rand.randint(0,self.mm_size)), '09b')
             tag = int(num[0:4],2)
+            line = int(num[4:7],2)
             print(num)
             print(tag)
+            print(line)
+            
 
-        #print(f"{self._cache[0]:09d}")
+
+
 
             
 
