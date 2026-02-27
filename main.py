@@ -2,13 +2,13 @@ import random as rand
 
 class Simulator():
     print("yeah")
-    def __init__(self, mm_size = 512, pg_size = 4, cache_size = 32):
+    def __init__(self, mm_size = 2**32, pg_size = 2**20, cache_size = 2**23):
     
         self.mm_size = int(mm_size-1)
         self._pg_size = int(pg_size-1)
         self._cache_size = int(cache_size-1)
         #self._memory_config = None
-        self._sample = 100
+        self._sample = 10
 
         self._set_size = self._mm_size
 
@@ -42,21 +42,28 @@ class Simulator():
     def generate(self):
 
         for i in range(self._sample):
+            print("------")
             num = format(int(rand.randint(0,self.mm_size)), '09b')
+            print(num)
+            _tag = int(num[0:self.tag],2)
+            _line = int(num[self.tag:self.tag+self.line],2)
 
-            tag = int(num[0:self.tag],2)
-            line = int(num[self.tag:self.tag+self.line],2)
 
-            if self._cache[line] == None:
-                self._cache[line] = num
-            elif self._cache[line][0:self.tag] == num[0:self.tag]:
+            print(f"tag: {_tag}")
+            print(f"line: {_line}")
+
+            if self._cache[_line] == None:
+                self._cache[_line] = num
+                print("NEW")
+            elif self._cache[_line][0:self.tag] == num[0:self.tag]:
                 print("HIT")
-                print(self._cache[line][0:self.tag])
-                print(num[0:self.tag])
+                print(f"cached tag: {self._cache[_line][0:self.tag]}")
+                print(f"   new tag: {num[0:self.tag]}")
             else:
                 print("MISS")
-                print(self._cache[line][0:self.tag])
-                print(num[0:self.tag])
+                print(f"cached tag: {self._cache[_line][0:self.tag]}")
+                print(f"   new tag: {num[0:self.tag]}")
+            
 
 
             # print(num)
