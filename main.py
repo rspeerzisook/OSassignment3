@@ -8,7 +8,7 @@ class Simulator():
         self._pg_size = int(pg_size-1)
         self._cache_size = int(cache_size-1)
         #self._memory_config = None
-        self._sample = 10
+        self._sample = 100
 
         self._set_size = self._mm_size
 
@@ -40,16 +40,29 @@ class Simulator():
         pass
 
     def generate(self):
-        self.tagGroups = 2^(self.tag) -1
 
         for i in range(self._sample):
             num = format(int(rand.randint(0,self.mm_size)), '09b')
-            tag = int(num[0:4],2)
-            line = int(num[4:7],2)
-            print(num)
-            print(tag)
-            print(line)
-            
+
+            tag = int(num[0:self.tag],2)
+            line = int(num[self.tag:self.tag+self.line],2)
+
+            if self._cache[line] == None:
+                self._cache[line] = num
+            elif self._cache[line][0:self.tag] == num[0:self.tag]:
+                print("HIT")
+                print(self._cache[line][0:self.tag])
+                print(num[0:self.tag])
+            else:
+                print("MISS")
+                print(self._cache[line][0:self.tag])
+                print(num[0:self.tag])
+
+
+            # print(num)
+            # print(tag)
+            # print(line)
+        print(self._cache)
 
 
 
