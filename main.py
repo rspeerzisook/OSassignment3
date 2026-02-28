@@ -1,13 +1,29 @@
 import random as rand
+import math
+
 
 class Simulator():
     print("yeah")
-    def __init__(self, mm_size = 2**32, pg_size = 2**20, cache_size = 2**23):
+    
+    def __init__(self):
 
-        
+        self.mm_size = self.bigOlInput("memory")
+        self.pg_size = self.bigOlInput("page")
+        self.cache_size = self.bigOlInput("cache")
+    
+        #self.mm_size = int(mm_size-1)
+        #self._pg_size = int(pg_size-1)
+        #self._cache_size = int(cache_size-1)
+        #self._memory_config = None
+        self._sample = 10
+
+        self._set_size = self._mm_size
+
+    def bigOlInput(self,thing):
+        sizes = {"bt":0, "kb":1, "mb":2, "gb":3}
         while True:
             try:
-                inpt = input("enter memory size. Must be power of 2 and a valid denomination (_bt, _kb, _mb, _gb)")
+                inpt = input(f"enter {thing} size. Must be power of 2 and a valid denomination (_bt, _kb, _mb, _gb)")
                 val = int(inpt[0:-2])
                 denom = inpt[-2:]
                 print(val)
@@ -23,20 +39,11 @@ class Simulator():
                 break
             except ValueError:
                 print("BAD")
-
-
-
-
-
-
-    
-        self.mm_size = int(mm_size-1)
-        self._pg_size = int(pg_size-1)
-        self._cache_size = int(cache_size-1)
-        #self._memory_config = None
-        self._sample = 10
-
-        self._set_size = self._mm_size
+        digit1 = sizes[denom]
+        digit2 = int(math.log(val,2))
+        digit = int(str(digit1) + str(digit2))
+        bigolsiize = int(2**digit) -1
+        return bigolsiize
 
     
     @property
@@ -110,7 +117,7 @@ class Simulator():
 
 def test():
     test = Simulator()
-    test.preprocessing()
-    test.generate()   
+    #test.preprocessing()
+    #test.generate()   
 
 test()
