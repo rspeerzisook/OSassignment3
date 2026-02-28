@@ -2,14 +2,23 @@ import random as rand
 import math
 
 
-class Simulator():
-    print("yeah")
-    
+class Simulator():    
     def __init__(self):
 
         self._mm_size = self.bigOlInput("memory")
         self._pg_size = self.bigOlInput("page")
         self._cache_size = self.bigOlInput("cache")
+
+        while True:
+            try:
+                samp = int(input("sample size: "))
+                if samp < 1:
+                    print("Must be above 0")
+                    continue
+                break
+            except ValueError:
+                print("BAD")
+        self._sample = samp
     
         #self.mm_size = int(mm_size-1)
         #self._pg_size = int(pg_size-1)
