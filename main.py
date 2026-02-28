@@ -7,9 +7,9 @@ class Simulator():
     
     def __init__(self):
 
-        self.mm_size = self.bigOlInput("memory")
-        self.pg_size = self.bigOlInput("page")
-        self.cache_size = self.bigOlInput("cache")
+        self._mm_size = self.bigOlInput("memory")
+        self._pg_size = self.bigOlInput("page")
+        self._cache_size = self.bigOlInput("cache")
     
         #self.mm_size = int(mm_size-1)
         #self._pg_size = int(pg_size-1)
@@ -28,11 +28,9 @@ class Simulator():
                 denom = inpt[-2:]
                 print(val)
                 print(denom)
-
                 if (val & (val -1)) != 0:
                     print("must be power of 2")
                     continue
-
                 if denom not in ('gb','mb','kb','bt'):
                     print("use _bt, _kb, _mb, _gb")
                     continue
@@ -45,18 +43,6 @@ class Simulator():
         bigolsiize = int(2**digit) -1
         return bigolsiize
 
-    
-    @property
-    def mm_size(self):
-        return self._mm_size
-    
-    @mm_size.setter
-    def mm_size(self, new_mm_size):
-        if type(new_mm_size) != int and type(new_mm_size) != float:
-            raise TypeError("Enter a valid size for the main memory")
-        elif new_mm_size%2 == 0:
-            raise ValueError("Please enter a power of 2")
-        self._mm_size = new_mm_size
 
     def preprocessing(self):
         self.addr_len = len(bin(self._mm_size)[2:])
@@ -76,7 +62,7 @@ class Simulator():
 
         for i in range(self._sample):
             print("------")
-            num = format(int(rand.randint(0,self.mm_size)), '09b')
+            num = format(int(rand.randint(0,self._mm_size)), '09b')
             print(num)
             _tag = int(num[0:self.tag],2)
             _line = int(num[self.tag:self.tag+self.line],2)
@@ -117,7 +103,7 @@ class Simulator():
 
 def test():
     test = Simulator()
-    #test.preprocessing()
-    #test.generate()   
+    test.preprocessing()
+    test.generate()   
 
 test()
