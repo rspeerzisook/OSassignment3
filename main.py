@@ -43,7 +43,7 @@ class Simulator():
         sizes = {"bt":0, "kb":1, "mb":2, "gb":3}
         while True:
             try:
-                inpt = input(f"enter {thing} size. Must be power of 2 and a valid denomination (_bt, _kb, _mb, _gb)")
+                inpt = input(f"enter {thing} size. Must be power of 2 and a valid denomination (_bt, _kb, _mb, _gb): ")
                 val = int(inpt[0:-2])
                 denom = inpt[-2:]
                 print(val)
@@ -78,7 +78,7 @@ class Simulator():
     def pick_config(self):
         while True:
             try:
-                inpt = input(f"Pick a config: \nConfig 1, Direct Mapping. \nConfig 2, Fully Associative. \nConfig 3, k-way Associative Mapping ") 
+                inpt = input(f"Pick a config: \nConfig 1, Direct Mapping. \nConfig 2, Fully Associative. \nConfig 3, k-way Associative Mapping: ") 
                 print(inpt)
                 print(type(inpt))
                 if inpt not in ('1', '2', '3'):
@@ -92,7 +92,7 @@ class Simulator():
     def set_k(self):
         while True:
             try:
-                inpt = int(input("Set K"))
+                inpt = int(input("Set K: "))
                 if (inpt & (inpt -1)) != 0:
                     print("must be power of 2")
                     continue
@@ -105,7 +105,7 @@ class Simulator():
     def pick_policy(self):
         while True:
             try:
-                inpt = input(f"Pick a policy: \nPolicy 1, prioritize empty slots.\n Policy 2, prioritize least used.\n Policy 3, prioritize the least recently used")
+                inpt = input(f"Pick a policy: \nPolicy 1, prioritize empty slots.\n Policy 2, prioritize least used.\n Policy 3, prioritize the least recently used: ")
                 if inpt not in ('1', '2', '3'):
                     print("Pick a policy #")
                     continue
@@ -252,24 +252,24 @@ class Simulator():
             if ishit:
                 break
             self.trace.write("MISS\n")
+            self.trace.write(f"Hits: {self.hits}\n")
+            self.trace.write(f"Misses: {self.misses}\n")
             self.misses += 1
             brek = False
             for x in range(_set_size):
                 if self._cache[index+x] == None:
-                    self._cache[index+x] = str(num) + format(current_time, )'00000000'
+                    self._cache[index+x] = str(num) + format(current_time, f'08b')
                     brek = True
                     break
             if brek:
                 break
             blarg = 2^8 - 1
+            bingus = index
             for y in range(_set_size):
                 if int(str(self._cache[index+y])[-8:],2) < blarg:
                     blarg = int(str(self._cache[index+y])[-8:],2)
                     bingus = index+y
-            self._cache[bingus] = str(num) + '00000000'
-            
-            self.trace.write(f"Hits: {self.hits}\n")
-            self.trace.write(f"Misses: {self.misses}\n")
+            self._cache[bingus] = str(num) + format(current_time, f'08b')
             print(self._cache)
 
 
@@ -305,7 +305,7 @@ class Simulator():
         self.trace.write(f"Misses: {self.misses}\n")
         print(self._cache)
 
-    def main(self):
+    def main(self, current_time):
         if self._mapping == "1":
             self.direct()
         elif self._mapping == "2" and self._replacement == "1": # Fully Associative, Prioritize Empty
@@ -316,10 +316,10 @@ class Simulator():
             self.kway_least_used()
         elif self._mapping == "3" and self._replacement == "2": # K-Way Set Associative, Prioritize Least Used
             self.kway_least_used()
-        elif self._mapping == "2" and self._replacement == "1": # Fully Associative, Prioritize Least Recently Used
-            self.kway_least_recent()
-        elif self._mapping == "3" and self._replacement == "1": # K-Way Set Associative, Prioritize Least Recently Used
-            self.kway_least_recent()
+        elif self._mapping == "2" and self._replacement == "3": # Fully Associative, Prioritize Least Recently Used
+            self.kway_least_recent(current_time)
+        elif self._mapping == "3" and self._replacement == "3": # K-Way Set Associative, Prioritize Least Recently Used
+            self.kway_least_recent(current_time)
         
         
 
@@ -336,7 +336,7 @@ def continuous_ticker(interval=1):
     plt.show()
     try:
         while True:
-            test.main()
+            test.main(elapsed_time)
             hits.append(test.hits)
             misses.append(test.misses)
             time_data.append(elapsed_time)
