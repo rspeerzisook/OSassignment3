@@ -56,7 +56,7 @@ class Simulator():
 
 
     def preprocessing(self):
-        self.addr_len = len(bin(self._mm_size)[2:])
+        self.addr_len = len(bin(self._mm_size)[2:]) # Length of the Binary representation
         self.offset = len(bin(self._pg_size)[2:])
         self.cache_len = len(bin(self._cache_size)[2:]) 
         self.line = self.cache_len - self.offset
@@ -69,7 +69,7 @@ class Simulator():
     def pick_config(self, config):
         while True:
             try:
-                inpt = input(f"Pick a {config} config: \nConfig 1, Direct Mapping. \nConfig 2, Fully Associative. \nConfig 3, k-way Associatvie Mapping") 
+                inpt = input(f"Pick a {config} config: \nConfig 1, Direct Mapping. \nConfig 2, Fully Associative. \nConfig 3, k-way Associative Mapping") 
                 print(inpt)
                 print(type(inpt))
                 if inpt not in [1, 2, 3]:
@@ -83,7 +83,6 @@ class Simulator():
                         if type(self._k) is not int:
                             print("Not a valid k-value")
                             continue
-                        break
                     except  ValueError:
                         print("BAD")
                 break
@@ -94,7 +93,7 @@ class Simulator():
     def pick_policy(self, policy):
         while True:
             try:
-                inpt = input(f"Pick a {policy} policy: \nPolicy 1, Replacement policy cache collisions are resolved by overwriting.\n Policy 2, prioritize empty slots.\n Policy 3, prioritize the least recently used")
+                inpt = input(f"Pick a {policy} policy: \nPolicy 1, replacement policy cache collisions are resolved by overwriting.\n Policy 2, prioritize empty slots.\n Policy 3, prioritize the least recently used")
                 if inpt not in [1, 2, 3]:
                     print("Pick a policy #")
                     continue
@@ -110,17 +109,43 @@ class Simulator():
         pass
                 
     def kway(self):
+        # Iterate through the sample to generate the number of hits/misses
         for k in range(self._sample):
-            num = format(int(rand.randint(0,self._mm_size)),'09b')
+            self._k = 4
+            num = format(int(rand.randint(0,self._mm_size)),f'0{self.addr_len}b')
+            print(num)
+            _set_size = int((self._cache_size+1) / self._k / (self._pg_size+1)) # Returns the set size in terms of the number of pages
 
-            _set_size = (self._cache_size+1) / 4
-
-            k_len = len(format(int(4),'09b'))
+            k_len = len(bin(self._k-1)[2:])
             k_tag = self.addr_len - self.offset - k_len
-            _set = num[k_tag:k_tag+k_len]
+            _set = int(num[k_tag:k_tag+k_len],2)
+            print(f"k_len: {k_len}")
+            print(k_tag)
             print(_set_size)
             print(_set)
+            ishit = False
+            index = 0
+            for i in range(_set):
+                index += _set_size
+            for x in range(_set_size):
+                if self._cache[index+x] == None:
+                    continue
+                if self._cache[index+x][0:k_tag] == num[0:k_tag]:
+                    print("TAG HIT")
+                    ishit = True
+                    break
 
+                else:
+                    print("Not hit")
+            if ishit:
+                break
+            for x in range(_set_size):
+                if self._cache[index+x] == None:
+                    self._cache[index+x] = num
+                    break
+        print(self._cache)
+                
+                    
             
 
 
@@ -129,7 +154,7 @@ class Simulator():
 
         for i in range(self._sample):
             print("------")
-            num = format(int(rand.randint(0,self._mm_size)), '09b')
+            num = format(int(rand.randint(0,self._mm_size)), f'0{self.addr_len}b')
             print(num)
             _tag = int(num[0:self.tag],2)
             _line = int(num[self.tag:self.tag+self.line],2)
@@ -157,6 +182,15 @@ class Simulator():
             # print(line)
         print(self._cache)
 
+    def main(self):
+        pass
+        if self._mapping == 1:
+            self.direct()
+        elif self._mapping == 2 and self._replacement == 1:
+            self.direct()
+        elif self._mapping == 2 and self._replacement == 2:
+            self.kway()
+        elif self._mapping == 3 and self._replacement == :
 
 
 
@@ -168,7 +202,6 @@ class Simulator():
 
 
 def test():
-    
     test = Simulator()
     test.preprocessing()
     #test.pick_policy()
