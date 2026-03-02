@@ -114,7 +114,7 @@ class Simulator():
                 print("BAD")
         return inpt
                 
-    def kway(self):
+    def kway_empty(self):
         # Iterate through the sample to generate the number of hits/misses
         for k in range(self._sample):
             self.trace.write("------\n")
@@ -158,23 +158,74 @@ class Simulator():
         self.trace.write(f"Misses: {self.misses}\n")
         print(self._cache)
                 
-                    
+    def kway_least_used(self):
+        # Iterate through the sample to generate the number of hits/misses
+        for k in range(self._sample):
+            self.trace.write("------\n")
+            num = format(int(rand.randint(0,self._mm_size)),f'0{self.addr_len}b')
+            self.trace.write(f"New Address:      {num}\n")
+            _set_size = int((self._cache_size+1) / self._k / (self._pg_size+1)) # Returns the set size in terms of the number of pages
+
+            k_len = len(bin(self._k-1)[2:])
+            k_tag = self.addr_len - self.offset - k_len
+            _set = int(num[k_tag:k_tag+k_len],2)
+            #print(f"k_len: {k_len}")
+            #print(k_tag)
+            #print(_set_size)
+            #print(_set)
+            ishit = False
+            index = 0
+            for i in range(_set):
+                index += _set_size
+            for x in range(_set_size):
+                self.trace.write(f"Compared Address: {self._cache[index+x][0:-4]}\n")
+                if self._cache[index+x] == None:
+                    continue
+                if self._cache[index+x][0:k_tag] == num[0:k_tag]:
+                    self.trace.write("TAG HIT\n")
+                    itr = int(self._cache[index+x],2) + 1
+                    self._cache[index+x] = format(int(itr), f'0{self.addr_len}b')
+                    self.hits += 1
+                    ishit = True
+                    break
+
+                else:
+                    self.trace.write("Not hit\n")
+            if ishit:
+                break
+            self.trace.write("MISS\n")
+            self.misses += 1
+            for x in range(_set_size):
+                if self._cache[index+x] == None:
+                    self._cache[index+x] = str(num) + '0000'
+                    brek = True
+                    break
+            if brek:
+                break
+            blarg = 15
+            for y in range(_set_size):
+                if int(str(self._cache[index+y])[-4:],2) < blarg:
+                    blarg = int(str(self._cache[index+y])[-4:],2)
+                    bingus = index+y
+            self._cache[bingus] = str(num) + '0000'
             
+
+
+            
+            self.trace.write(f"Hits: {self.hits}\n")
+            self.trace.write(f"Misses: {self.misses}\n")
+            print(self._cache)
+                
 
 
 
     def direct(self):
-
         for i in range(self._sample):
             self.trace.write("------\n")
             num = format(int(rand.randint(0,self._mm_size)), f'0{self.addr_len}b')
             self.trace.write(f"New Address:      {num}\n")
             _tag = int(num[0:self.tag],2)
             _line = int(num[self.tag:self.tag+self.line],2)
-
-
-            #print(f"tag: {_tag}")
-            #print(f"line: {_line}")
 
             if self._cache[_line] == None:
                 self._cache[_line] = num
@@ -195,23 +246,25 @@ class Simulator():
             # print(num)
             # print(tag)
             # print(line)
+        self.trace.write(f"Hits: {self.hits}\n")
+        self.trace.write(f"Misses: {self.misses}\n")
         print(self._cache)
 
     def main(self):
         if self._mapping == "1":
             self.direct()
-        elif self._mapping == "2" and self._config == "1": # Fully Associative, Prioritize Empty
-            self.kway()
-        elif self._mapping == "3" and self._config == "1": # K-Way Set Associative, Prioritize Empty
-            self.kway()
-        elif self._mapping == "2" and self._config == "2": # Fully Associative, Prioritize Least Used
-            self.kway()
-        elif self._mapping == "3" and self._config == "2": # K-Way Set Associative, Prioritize Least Used
-            self.kway()
-        elif self._mapping == "2" and self._config == "1": # Fully Associative, Prioritize Empty
-            self.kway()
-        elif self._mapping == "3" and self._config == "1": # Fully Associative, Prioritize Least Recently Used
-                    self.kway()
+        elif self._mapping == "2" and self._replacement == "1": # Fully Associative, Prioritize Empty
+            self.kway_empty()
+        elif self._mapping == "3" and self._replacement == "1": # K-Way Set Associative, Prioritize Empty
+            self.kway_empty()
+        elif self._mapping == "2" and self._replacement == "2": # Fully Associative, Prioritize Least Used
+            self.kway_least_used()
+        elif self._mapping == "3" and self._replacement == "2": # K-Way Set Associative, Prioritize Least Used
+            self.kway_least_used()
+        elif self._mapping == "2" and self._replacement == "1": # Fully Associative, Prioritize Least Recently Used
+            self.kway_least_recent()
+        elif self._mapping == "3" and self._replacement == "1": # K-Way Set Associative, Prioritize Least Recently Used
+            self.kway_least_recent()
         
         
 
@@ -224,15 +277,18 @@ def continuous_ticker(interval=1):
     misses = []
     time_data = []
     plt.ion()
+    plt.figure(figsize=(10, 5))
+    plt.show()
     try:
         while True:
-            test.kway()
+            test.main()
             hits.append(test.hits)
             misses.append(test.misses)
             time_data.append(elapsed_time)
-            print(f"Tick: {elapsed_time}, Hit/Miss Ratio: {test.hits / test.misses}")
-            plt.clf()
-            plt.figure(figsize=(10, 5))
+            if test.misses == 0:
+                print(f"Tick: {elapsed_time}, Hit/Miss Ratio: {test.hits}")
+            else:
+                print(f"Tick: {elapsed_time}, Hit/Miss Ratio: {test.hits / test.misses}")
             plt.plot(time_data, hits, label='Hits', color='green')
             plt.plot(time_data, misses, label='Misses', color='red')
             plt.title('Hits vs Misses Over Time')
@@ -240,9 +296,10 @@ def continuous_ticker(interval=1):
             plt.ylabel('Time in Seconds')
             plt.legend()
             plt.grid(True)
-            plt.show()
             elapsed_time += 2
+            plt.pause(interval)
             time.sleep(interval) # ticks every interval seconds
+            plt.clf()
     except KeyboardInterrupt: # ctrl c
         print("\nTicker stopped.")
         test.trace.close()
@@ -251,11 +308,3 @@ def continuous_ticker(interval=1):
 # Start the ticker
 if __name__ == "__main__":
     continuous_ticker(2) # Ticks every 2 seconds
-
-
-# def test():
-#     test = Simulator()
-#     #test.pick_policy()
-#     test.kway()   
-
-# # test()
