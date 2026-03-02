@@ -1,6 +1,6 @@
 import random as rand
 import math
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import time
 
 
@@ -11,13 +11,12 @@ class Simulator():
         self._pg_size = self.bigOlInput("page")
         self._cache_size = self.bigOlInput("cache")
         self.preprocessing()
-        self._hits = 0
-        self._misses = 0
+        self.hits = 0
+        self.misses = 0
         self._mapping = self.pick_config()
-        if self._mapping != 1:
+        if self._mapping != "1":
             self._k = self.set_k()
             self._replacement = self.pick_policy()
-
 
         while True:
             try:
@@ -29,8 +28,9 @@ class Simulator():
             except ValueError:
                 print("BAD")
         self._sample = samp
-
-        self._set_size = self._mm_size
+        trace = open("traceFile.txt","a")
+        trace.write(f"Memory Size: {self._mm_size+1}\nPage Size: {self._pg_size+1}\nCache Size: {self._cache_size+1}\nMapping: {self._mapping}\n")
+        
 
     def bigOlInput(self,thing):
         sizes = {"bt":0, "kb":1, "mb":2, "gb":3}
@@ -74,11 +74,9 @@ class Simulator():
                 inpt = input(f"Pick a config: \nConfig 1, Direct Mapping. \nConfig 2, Fully Associative. \nConfig 3, k-way Associative Mapping") 
                 print(inpt)
                 print(type(inpt))
-                if inpt not in [1, 2, 3]:
-                    print("Pick a policy #")
+                if inpt not in ('1', '2', '3'):
+                    print("Pick a config #")
                     continue
-                
-                
                 break
             except ValueError:
                 print("BAD")
@@ -108,46 +106,6 @@ class Simulator():
             except ValueError:
                 print("BAD")
         return inpt
-    
-    def full_replacement(self, address):
-        pass
-
-    def k_way_associative(self):
-        # Iterate through the sample to generate the number of hits/misses
-        for k in range(self._sample):
-            
-            num = format(int(rand.randint(0,self._mm_size)),f'0{self.addr_len}b')
-            print(num)
-            _set_size = int((self._cache_size+1) / self._k / (self._pg_size+1)) # Returns the set size in terms of the number of pages
-
-            k_len = len(bin(self._k-1)[2:])
-            k_tag = self.addr_len - self.offset - k_len
-            _set = int(num[k_tag:k_tag+k_len],2)
-            print(f"k_len: {k_len}")
-            print(k_tag)
-            print(_set_size)
-            print(_set)
-            ishit = False
-            index = 0
-            for i in range(_set):
-                index += _set_size
-            for x in range(_set_size):
-                if self._cache[index+x] == None:
-                    continue
-                if self._cache[index+x][0:k_tag] == num[0:k_tag]:
-                    print("TAG HIT")
-                    ishit = True
-                    break
-
-                else:
-                    print("Not hit")
-            if ishit:
-                break
-            for x in range(_set_size):
-                if self._cache[index+x] == None:
-                    self._cache[index+x] = num
-                    break
-        print(self._cache)
                 
     def kway(self):
         # Iterate through the sample to generate the number of hits/misses
@@ -173,6 +131,7 @@ class Simulator():
                     continue
                 if self._cache[index+x][0:k_tag] == num[0:k_tag]:
                     print("TAG HIT")
+                    self.hits += 1
                     ishit = True
                     break
 
@@ -180,7 +139,8 @@ class Simulator():
                     print("Not hit")
             if ishit:
                 break
-
+            print("MISS")
+            self.misses += 1
             #if empty replacement policy
             for x in range(_set_size):
                 if self._cache[index+x] == None:
@@ -210,11 +170,12 @@ class Simulator():
                 self._cache[_line] = num
                 print("NEW")
             elif self._cache[_line][0:self.tag] == num[0:self.tag]:
-                self._hits
+                self.hits
                 print("HIT")
                 print(f"cached tag: {self._cache[_line][0:self.tag]}")
                 print(f"   new tag: {num[0:self.tag]}")
             else:
+                self.misses += 1
                 print("MISS")
                 print(f"cached tag: {self._cache[_line][0:self.tag]}")
                 print(f"   new tag: {num[0:self.tag]}")
@@ -228,7 +189,7 @@ class Simulator():
 
     def main(self):
         pass
-        if self._mapping == 1 or self._replacement == 1:
+        if self._mapping == "1" or self._replacement == "1":
             self.direct()
         
 
@@ -237,25 +198,36 @@ def continuous_ticker(interval=1):
     """Prints a 'tick' continuously."""
     elapsed_time = 0
     test = Simulator()
+    hits = []
+    misses = []
     try:
         while True:
             test.kway()
+            hits.append(test.hits)
+            misses.append(test.misses)
+            print(f"Tick: {elapsed_time}, Hit/Miss Ratio: {test.hits / test.misses}")
+            plt.figure(figsize=(10, 5))
+            plt.plot(elapsed_time, hits, label='Hits', marker='o', color='green')
+            plt.plot(elapsed_time, misses, label='Misses', marker='x', color='red')
+            plt.title('Hits vs Misses Over Time')
+            plt.xlabel('Date')
+            plt.ylabel('Cumulative Count')
+            plt.legend()
+            plt.grid(True)
+            plt.show()
             elapsed_time += 2
-            print(f"Tick: {elapsed_time}")
             time.sleep(interval) # ticks every interval seconds
     except KeyboardInterrupt: # ctrl c
         print("\nTicker stopped.")
 
-# Start the ticker
-if __name__ == "__main__":
-    continuous_ticker(2) # Ticks every 2 seconds
+# # Start the ticker
+# if __name__ == "__main__":
+#     continuous_ticker(2) # Ticks every 2 seconds
 
 
+# def test():
+#     test = Simulator()
+#     #test.pick_policy()
+#     test.kway()   
 
-
-def test():
-    test = Simulator()
-    #test.pick_policy()
-    test.kway()   
-
-# test()
+# # test()
