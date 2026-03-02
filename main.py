@@ -147,7 +147,7 @@ class Simulator():
                 print("MISS")
                 print(f"cached tag: {self._cache[_line][0:self.tag]}")
                 print(f"   new tag: {num[0:self.tag]}")
-                self._cache
+                self._cache[_line] = num
 
 
             # print(num)
