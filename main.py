@@ -22,16 +22,16 @@ class Simulator():
             self._replacement = self.pick_policy()
         
 
-        while True:
-            try:
-                samp = int(input("sample size: "))
-                if samp < 1:
-                    print("Must be above 0")
-                    continue
-                break
-            except ValueError:
-                print("BAD")
-        self._sample = samp
+        # while True:
+        #     try:
+        #         samp = int(input("sample size: "))
+        #         if samp < 1:
+        #             print("Must be above 0")
+        #             continue
+        #         break
+        #     except ValueError:
+        #         print("BAD")
+        self._sample = 1
         self.trace = open("traceFile.txt","w")
         self.trace.write("New File\n")
         self.trace.close()
@@ -78,7 +78,7 @@ class Simulator():
     def pick_config(self):
         while True:
             try:
-                inpt = input(f"Pick a config: \nConfig 1, Direct Mapping. \nConfig 2, Fully Associative. \nConfig 3, k-way Associative Mapping") 
+                inpt = input(f"Pick a config: \nConfig 1, Direct Mapping. \nConfig 2, Fully Associative. \nConfig 3, k-way Associative Mapping ") 
                 print(inpt)
                 print(type(inpt))
                 if inpt not in ('1', '2', '3'):
@@ -178,7 +178,65 @@ class Simulator():
             for i in range(_set):
                 index += _set_size
             for x in range(_set_size):
-                self.trace.write(f"Compared Address: {self._cache[index+x][0:-4]}\n")
+                self.trace.write(f"Compared Address: {str(self._cache[index+x])[0:-4]}\n")
+                if self._cache[index+x] == None:
+                    continue
+                if self._cache[index+x][0:k_tag] == num[0:k_tag]:
+                    self.trace.write("TAG HIT\n")
+                    self.trace.write(f"Hits: {self.hits}\n")
+                    self.trace.write(f"Misses: {self.misses}\n")
+                    itr = int(self._cache[index+x],2) + 1
+                    self._cache[index+x] = format(int(itr), f'0{self.addr_len}b')
+                    self.hits += 1
+                    ishit = True
+                    break
+
+                else:
+                    self.trace.write("Not hit\n")
+            if ishit:
+                break
+            self.trace.write("MISS\n")
+            self.trace.write(f"Hits: {self.hits}\n")
+            self.trace.write(f"Misses: {self.misses}\n")
+            self.misses += 1
+            brek = False
+            for x in range(_set_size):
+                if self._cache[index+x] == None:
+                    self._cache[index+x] = str(num) + '0000'
+                    brek = True
+                    break
+            if brek:
+                break
+            blarg = 15
+            for y in range(_set_size):
+                if int(str(self._cache[index+y])[-4:],2) < blarg:
+                    blarg = int(str(self._cache[index+y])[-4:],2)
+                    bingus = index+y
+            self._cache[bingus] = str(num) + '0000'
+            
+            print(self._cache)
+
+    def kway_least_recent(self, current_time):
+        # Iterate through the sample to generate the number of hits/misses
+        for k in range(self._sample):
+            self.trace.write("------\n")
+            num = format(int(rand.randint(0,self._mm_size)),f'0{self.addr_len}b')
+            self.trace.write(f"New Address:      {num}\n")
+            _set_size = int((self._cache_size+1) / self._k / (self._pg_size+1)) # Returns the set size in terms of the number of pages
+
+            k_len = len(bin(self._k-1)[2:])
+            k_tag = self.addr_len - self.offset - k_len
+            _set = int(num[k_tag:k_tag+k_len],2)
+            #print(f"k_len: {k_len}")
+            #print(k_tag)
+            #print(_set_size)
+            #print(_set)
+            ishit = False
+            index = 0
+            for i in range(_set):
+                index += _set_size
+            for x in range(_set_size):
+                self.trace.write(f"Compared Address: {str(self._cache[index+x])[0:-8]}\n")
                 if self._cache[index+x] == None:
                     continue
                 if self._cache[index+x][0:k_tag] == num[0:k_tag]:
@@ -195,27 +253,24 @@ class Simulator():
                 break
             self.trace.write("MISS\n")
             self.misses += 1
+            brek = False
             for x in range(_set_size):
                 if self._cache[index+x] == None:
-                    self._cache[index+x] = str(num) + '0000'
+                    self._cache[index+x] = str(num) + format(current_time, )'00000000'
                     brek = True
                     break
             if brek:
                 break
-            blarg = 15
+            blarg = 2^8 - 1
             for y in range(_set_size):
-                if int(str(self._cache[index+y])[-4:],2) < blarg:
-                    blarg = int(str(self._cache[index+y])[-4:],2)
+                if int(str(self._cache[index+y])[-8:],2) < blarg:
+                    blarg = int(str(self._cache[index+y])[-8:],2)
                     bingus = index+y
-            self._cache[bingus] = str(num) + '0000'
-            
-
-
+            self._cache[bingus] = str(num) + '00000000'
             
             self.trace.write(f"Hits: {self.hits}\n")
             self.trace.write(f"Misses: {self.misses}\n")
             print(self._cache)
-                
 
 
 
@@ -293,12 +348,11 @@ def continuous_ticker(interval=1):
             plt.plot(time_data, misses, label='Misses', color='red')
             plt.title('Hits vs Misses Over Time')
             plt.xlabel('Hits and Misses')
-            plt.ylabel('Time in Seconds')
+            plt.ylabel('Time in Tenths of a Second')
             plt.legend()
             plt.grid(True)
-            elapsed_time += 2
-            plt.pause(interval)
-            time.sleep(interval) # ticks every interval seconds
+            elapsed_time += 1
+            plt.pause(interval) # ticks every interval seconds
             plt.clf()
     except KeyboardInterrupt: # ctrl c
         print("\nTicker stopped.")
@@ -307,4 +361,4 @@ def continuous_ticker(interval=1):
 
 # Start the ticker
 if __name__ == "__main__":
-    continuous_ticker(2) # Ticks every 2 seconds
+    continuous_ticker(0.1) # Ticks 10 times a second
