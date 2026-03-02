@@ -26,7 +26,7 @@ class Simulator():
         #self._pg_size = int(pg_size-1)
         #self._cache_size = int(cache_size-1)
         #self._memory_config = None
-        self._sample = 10
+        #self._sample = 10
 
         self._set_size = self._mm_size
 
@@ -110,14 +110,16 @@ class Simulator():
         pass
                 
     def kway(self):
-        for i in range(self._sample):
+        for k in range(self._sample):
             num = format(int(rand.randint(0,self._mm_size)),'09b')
 
-            _set_size = self._cache_size / 4
+            _set_size = (self._cache_size+1) / 4
 
             k_len = len(format(int(4),'09b'))
             k_tag = self.addr_len - self.offset - k_len
-            _set = int(num[k_tag:k_tag+k_len])
+            _set = num[k_tag:k_tag+k_len]
+            print(_set_size)
+            print(_set)
 
             
 
